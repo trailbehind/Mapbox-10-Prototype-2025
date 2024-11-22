@@ -11,7 +11,7 @@ import SwiftUI
 struct Mapbox_10_Prototype_2025App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainMap()
         }
     }
 }
