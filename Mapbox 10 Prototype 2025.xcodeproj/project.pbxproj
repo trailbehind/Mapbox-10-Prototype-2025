@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EC8B47052CF13FC0006186CD /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = EC8B47042CF13FC0006186CD /* MapboxMaps */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		EC8B46EC2CF13672006186CD /* Mapbox 10 Prototype 2025.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mapbox 10 Prototype 2025.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC8B47052CF13FC0006186CD /* MapboxMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "Mapbox 10 Prototype 2025";
 			packageProductDependencies = (
+				EC8B47042CF13FC0006186CD /* MapboxMaps */,
 			);
 			productName = "Mapbox 10 Prototype 2025";
 			productReference = EC8B46EC2CF13672006186CD /* Mapbox 10 Prototype 2025.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = EC8B46E32CF13672006186CD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EC8B46ED2CF13672006186CD /* Products */;
 			projectDirPath = "";
@@ -255,6 +264,7 @@
 				DEVELOPMENT_TEAM = 8VTZU79ASP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Mapbox-10-Prototype-2025-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +294,7 @@
 				DEVELOPMENT_TEAM = 8VTZU79ASP;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Mapbox-10-Prototype-2025-Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -324,6 +335,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
+			requirement = {
+				kind = exactVersion;
+				version = 10.19.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EC8B47042CF13FC0006186CD /* MapboxMaps */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;
+			productName = MapboxMaps;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EC8B46E42CF13672006186CD /* Project object */;
 }
