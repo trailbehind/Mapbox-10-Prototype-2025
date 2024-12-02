@@ -119,6 +119,14 @@ struct MapView: UIViewRepresentable {
     
     
     func addWaypoints(mapView: MapboxMaps.MapView) {
+        let centerCoordinate = mapView.cameraState.center
+        let zoomLevel = Int(mapView.cameraState.zoom.rounded())
+
+        let currentTileID = MathHelper.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
+
+        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
+        
+        
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
         let waypointImageName = "pin" // Name of the image asset
@@ -135,22 +143,23 @@ struct MapView: UIViewRepresentable {
         } else {
             print("Image \(waypointImageName) not found.")
         }
-
+        //may not be necessary or may need adjusting, Android ha sonly min and max zoom, took these from TF
+        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
         let options = CustomGeometrySourceOptions(
             fetchTileFunction: { tileID in
-                let features = self.generateWaypoints()
+                print("Tile ID: x\(tileID.x), y\(tileID.y), z\(tileID.z)")
                 do {
                     try mapView.mapboxMap.style.setCustomGeometrySourceTileData(
                         forSourceId: sourceId,
                         tileId: tileID,
-                        features: features
+                        features: visibleWaypoints
                     )
                 } catch {
                     print("Error setting custom geometry source tile data: \(error)")
                 }
             },
             cancelTileFunction: { _ in },
-            tileOptions: TileOptions()
+            tileOptions: tileOptions
         )
 
         do {
@@ -161,6 +170,9 @@ struct MapView: UIViewRepresentable {
             symbolLayer.iconImage = .constant(.name(waypointImageName))
             symbolLayer.iconAllowOverlap = .constant(true)
             symbolLayer.iconSize = .constant(1.0)
+            symbolLayer.iconAnchor = .constant(.center)
+            symbolLayer.iconOffset = .constant([0, 0])
+
 
             try mapView.mapboxMap.style.addLayer(symbolLayer)
 
@@ -169,29 +181,8 @@ struct MapView: UIViewRepresentable {
             print("Error adding waypoints or symbol layer: \(error)")
         }
     }
+    
 
-    private func generateWaypoints() -> [Feature] {
-        var features: [Feature] = []
-        
-        let centerLatitude = 47.42
-        let centerLongitude = -121.425
-        
-        let spacing = 0.1
-        
-        for _ in 0..<100 {
-            let latitude = centerLatitude + Double.random(in: -spacing...spacing)
-            let longitude = centerLongitude + Double.random(in: -spacing...spacing)
-            
-            let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-            let point = Point(coordinate)
-            
-            var feature = Feature(geometry: .point(point))
-            
-            features.append(feature)
-        }
-        
-        return features
-    }
 
     
   // This is a helper function for updateUIView() above
