@@ -8,6 +8,7 @@
 import MapboxMaps
 
 struct Waypoint {
+    var id: Int
     var latitude: Double
     var longitude: Double
 }
@@ -18,10 +19,10 @@ class WaypointManager {
     var waypoints: [Waypoint] = []
 
     private init() {
-        waypoints = generateWaypoints() // Simulate fetching from CoreData
+        waypoints = fetchWaypoints() // Simulate fetching from CoreData
     }
 
-    private func generateWaypoints() -> [Waypoint] {
+    private func fetchWaypoints() -> [Waypoint] {
         var generatedWaypoints: [Waypoint] = []
         
         let centerLatitude = 47.42
@@ -29,15 +30,16 @@ class WaypointManager {
         
         let spacing = 0.1
         
-        for _ in 0..<100 {
+        for i in 0..<100 {
             let latitude = centerLatitude + Double.random(in: -spacing...spacing)
             let longitude = centerLongitude + Double.random(in: -spacing...spacing)
             
-            let waypoint = Waypoint(latitude: latitude, longitude: longitude)
+            let waypoint = Waypoint(id: i, latitude: latitude, longitude: longitude)
             generatedWaypoints.append(waypoint)
         }
-        
+        print("Generated waypoint count: \(generatedWaypoints.count)")
         return generatedWaypoints
+        
     }
 }
 
@@ -46,8 +48,6 @@ struct TileID {
     let y: Int
     let zoom: Int
 }
-
-
 
 class WaypointDataSource {
     static let shared = WaypointDataSource()
@@ -63,7 +63,9 @@ class WaypointDataSource {
                 // Create and return a Feature object if the waypoint matches the tile
                 let coordinate = CLLocationCoordinate2D(latitude: waypoint.latitude, longitude: waypoint.longitude)
                 let point = Point(coordinate)
-                let feature = Feature(geometry: .point(point))
+                var feature = Feature(geometry: .point(point))
+                let idAsString = String(waypoint.id)
+                feature.properties = ["id": .string(idAsString)]
                 return feature
             } else {
                 // Return nil if the waypoint does not belong to the given tile

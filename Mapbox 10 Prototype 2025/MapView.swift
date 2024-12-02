@@ -107,25 +107,25 @@ struct MapView: UIViewRepresentable {
       mapView.mapboxMap.loadStyleURI(styleURI) { _ in
         // after the style finishes loading, update the terrain settings if needed
         updateTerrain(mapView, context: context)
-          addWaypoints(mapView: mapView)
+          updateWaypoints(mapView: mapView)
       }
     } else {
       // if no style reload is necessary, just update the terrain settings immediately
       updateTerrain(mapView, context: context)
-        addWaypoints(mapView: mapView)
+        updateWaypoints(mapView: mapView)
 
     }
   }
     
     
-    func addWaypoints(mapView: MapboxMaps.MapView) {
+    func updateWaypoints(mapView: MapboxMaps.MapView) {
         let centerCoordinate = mapView.cameraState.center
         let zoomLevel = Int(mapView.cameraState.zoom.rounded())
 
         let currentTileID = MathHelper.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
 
         let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
-        
+        print("Visible Waypoints: \(visibleWaypoints.count)")
         
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
@@ -159,7 +159,7 @@ struct MapView: UIViewRepresentable {
                 }
             },
             cancelTileFunction: { _ in },
-            tileOptions: tileOptions
+            tileOptions: TileOptions()
         )
 
         do {
@@ -173,6 +173,11 @@ struct MapView: UIViewRepresentable {
             symbolLayer.iconAnchor = .constant(.center)
             symbolLayer.iconOffset = .constant([0, 0])
 
+            // Use the "id" property in the textField
+            symbolLayer.textField = .constant("{id}")
+            symbolLayer.textSize = .constant(12.0)
+            symbolLayer.textColor = .constant(.init(.black))
+            symbolLayer.textOffset = .constant([0, 2])
 
             try mapView.mapboxMap.style.addLayer(symbolLayer)
 
