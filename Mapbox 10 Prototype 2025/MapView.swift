@@ -107,85 +107,17 @@ struct MapView: UIViewRepresentable {
       mapView.mapboxMap.loadStyleURI(styleURI) { _ in
         // after the style finishes loading, update the terrain settings if needed
         updateTerrain(mapView, context: context)
-          updateWaypoints(mapView: mapView)
+          WaypointManager.shared.updateWaypoints(mapView: mapView)
       }
     } else {
       // if no style reload is necessary, just update the terrain settings immediately
       updateTerrain(mapView, context: context)
-        updateWaypoints(mapView: mapView)
+        WaypointManager.shared.updateWaypoints(mapView: mapView)
 
     }
   }
     
     
-    func updateWaypoints(mapView: MapboxMaps.MapView) {
-        let centerCoordinate = mapView.cameraState.center
-        let zoomLevel = Int(mapView.cameraState.zoom.rounded())
-
-        let currentTileID = MathHelper.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
-
-        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
-        print("Visible Waypoints: \(visibleWaypoints.count)")
-        
-        let sourceId = "waypoints"
-        let layerId = "waypoint-layer"
-        let waypointImageName = "pin" // Name of the image asset
-
-        // Load the image asset
-        if let waypointImage = UIImage(named: waypointImageName) {
-            do {
-                if !mapView.mapboxMap.style.imageExists(withId: waypointImageName) {
-                    try mapView.mapboxMap.style.addImage(waypointImage, id: waypointImageName)
-                }
-            } catch {
-                print("Failed to add image to style: \(error)")
-            }
-        } else {
-            print("Image \(waypointImageName) not found.")
-        }
-        //may not be necessary or may need adjusting, Android ha sonly min and max zoom, took these from TF
-        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
-        let options = CustomGeometrySourceOptions(
-            fetchTileFunction: { tileID in
-                print("Tile ID: x\(tileID.x), y\(tileID.y), z\(tileID.z)")
-                do {
-                    try mapView.mapboxMap.style.setCustomGeometrySourceTileData(
-                        forSourceId: sourceId,
-                        tileId: tileID,
-                        features: visibleWaypoints
-                    )
-                } catch {
-                    print("Error setting custom geometry source tile data: \(error)")
-                }
-            },
-            cancelTileFunction: { _ in },
-            tileOptions: TileOptions()
-        )
-
-        do {
-            try mapView.mapboxMap.style.addCustomGeometrySource(withId: sourceId, options: options)
-
-            var symbolLayer = SymbolLayer(id: layerId)
-            symbolLayer.source = sourceId
-            symbolLayer.iconImage = .constant(.name(waypointImageName))
-            symbolLayer.iconAllowOverlap = .constant(true)
-            symbolLayer.iconSize = .constant(1.0)
-            symbolLayer.iconAnchor = .constant(.center)
-            symbolLayer.iconOffset = .constant([0, 0])
-
-            // Use the "id" property in the textField
-            symbolLayer.textField = .constant("{id}")
-            symbolLayer.textSize = .constant(12.0)
-            symbolLayer.textColor = .constant(.init(.black))
-            symbolLayer.textOffset = .constant([0, 2])
-
-            try mapView.mapboxMap.style.addLayer(symbolLayer)
-
-            print("Waypoints and symbol layer with random colors added successfully.")
-        } catch {
-            print("Error adding waypoints or symbol layer: \(error)")
-        }
-    }
     
 
 
