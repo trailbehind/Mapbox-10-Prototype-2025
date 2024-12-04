@@ -29,7 +29,7 @@ class WaypointManager {
 
     var waypoints: [Waypoint] = []
     
-    var grid = true
+    var grid = false
 
     private init() {
         waypoints = fetchWaypoints() // Simulate fetching from CoreData
@@ -41,9 +41,9 @@ class WaypointManager {
         // Define starting point, spacing, and grid dimensions
         let startLatitude = 47.42
         let startLongitude = -121.425
-        let spacing = 0.001       // Distance between waypoints
+        let spacing = 0.1       // Distance between waypoints
         let gridDimension = 10  // Number of waypoints per row and column
-
+        let totalPoints = 1000
         if grid {
             for row in 0..<gridDimension {
                 for col in 0..<gridDimension {
@@ -55,7 +55,7 @@ class WaypointManager {
                 }
             }
         } else {
-            for i in 0..<100 {
+            for i in 0..<totalPoints {
                 let latitude = startLatitude + Double.random(in: -spacing...spacing)
                 let longitude = startLongitude + Double.random(in: -spacing...spacing)
                 let waypoint = Waypoint(id: i, latitude: latitude, longitude: longitude)
