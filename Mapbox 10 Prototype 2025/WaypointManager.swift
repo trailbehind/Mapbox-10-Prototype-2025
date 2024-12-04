@@ -29,7 +29,7 @@ class WaypointManager {
 
     var waypoints: [Waypoint] = []
     
-    var grid = false
+    var grid = true
 
     private init() {
         waypoints = fetchWaypoints() // Simulate fetching from CoreData
@@ -41,7 +41,7 @@ class WaypointManager {
         // Define starting point, spacing, and grid dimensions
         let startLatitude = 47.42
         let startLongitude = -121.425
-        let spacing = 0.1       // Distance between waypoints
+        let spacing = 0.001       // Distance between waypoints
         let gridDimension = 10  // Number of waypoints per row and column
 
         if grid {
@@ -70,23 +70,6 @@ class WaypointManager {
 
 
     func updateWaypoints(mapView: MapboxMaps.MapView) {
-        let visibleRegion = mapView.mapboxMap.coordinateBounds(for: mapView.bounds)
-        let boundingBox = BoundingBox(minLatitude: visibleRegion.southwest.latitude,
-                                      maxLatitude: visibleRegion.northeast.latitude,
-                                      minLongitude: visibleRegion.southwest.longitude,
-                                      maxLongitude: visibleRegion.northeast.longitude)
-
-//        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForViewport(visibleRegion: boundingBox)
-        
-        let centerCoordinate = mapView.cameraState.center
-        let zoomLevel = Int(mapView.cameraState.zoom.rounded())
-
-        let currentTileID = Math.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
-        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
-        
-        
-        print("Visible Waypoints: \(visibleWaypoints.count)")
-        
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
         let waypointImageName = "pin" // Name of the image asset
@@ -103,12 +86,11 @@ class WaypointManager {
         } else {
             print("Image \(waypointImageName) not found.")
         }
-        //may not be necessary or may need adjusting, Android has only min and max zoom, took these from TF
-        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
+
         let options = CustomGeometrySourceOptions(
             fetchTileFunction: { tileID in
-                print("Tile ID: x\(tileID.x), y\(tileID.y), z\(tileID.z)")
                 do {
+                    let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: tileID)
                     try mapView.mapboxMap.style.setCustomGeometrySourceTileData(
                         forSourceId: sourceId,
                         tileId: tileID,
@@ -128,7 +110,8 @@ class WaypointManager {
             var symbolLayer = SymbolLayer(id: layerId)
             symbolLayer.source = sourceId
             symbolLayer.iconImage = .constant(.name(waypointImageName))
-            symbolLayer.iconAllowOverlap = .constant(true)
+            //jmTODO: icon overlap not working, do we need clustering logic
+            symbolLayer.iconAllowOverlap = .constant(false)
             symbolLayer.iconSize = .constant(1.0)
             symbolLayer.iconAnchor = .constant(.center)
             symbolLayer.iconOffset = .constant([0, 0])
@@ -147,24 +130,18 @@ class WaypointManager {
     }
 }
 
-struct TileID {
-    let x: Int
-    let y: Int
-    let zoom: Int
-}
-
 class WaypointDataSource {
     static let shared = WaypointDataSource()
     
-    func getWaypointsForTile(tileID: TileID) -> [Feature] {
+    func getWaypointsForTile(tileID: CanonicalTileID) -> [Feature] {
         let waypoints = WaypointManager.shared.waypoints
         return waypoints.compactMap { waypoint in
-            // Calculate the tileID for the waypoint
-            let waypointTileID = Math.getTileID(latitude: waypoint.latitude, longitude: waypoint.longitude, zoom: tileID.zoom)
+            var tileBounds = Math.boundsFromTile(tileID)
             
-            // Check if the waypoint is within the correct tile bounds
-            if waypointTileID.x == tileID.x && waypointTileID.y == tileID.y {
-                // Create and return a Feature object if the waypoint matches the tile
+            // Instead of buffer bounds, TF sets TileOptions in CustomGeometrySource Options as below
+            //        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
+            tileBounds = Math.bufferBounds(bounds: tileBounds, buffer: 1 / 256)
+            if tileBounds.contains(latitude: waypoint.latitude, longitude: waypoint.longitude) {
                 let coordinate = CLLocationCoordinate2D(latitude: waypoint.latitude, longitude: waypoint.longitude)
                 let point = Point(coordinate)
                 var feature = Feature(geometry: .point(point))
@@ -172,42 +149,67 @@ class WaypointDataSource {
                 feature.properties = ["id": .string(idAsString)]
                 return feature
             } else {
-                // Return nil if the waypoint does not belong to the given tile
                 return nil
             }
-        }
-    }
-    
-    func getWaypointsForViewport(visibleRegion: BoundingBox) -> [Feature] {
-        return WaypointManager.shared.waypoints.filter { waypoint in
-            visibleRegion.contains(latitude: waypoint.latitude, longitude: waypoint.longitude)
-        }
-        .map {
-            Waypoint.waypointToFeature(waypoint: $0)
         }
     }
 }
 
 class Math {
-    static func getTileID(latitude: Double, longitude: Double, zoom: Int) -> TileID {
-        let n = pow(2.0, Double(zoom))
-        let x = Int((longitude + 180.0) / 360.0 * n)
-        let y = Int((1.0 - log(tan(latitude * .pi / 180.0) + 1.0 / cos(latitude * .pi / 180.0)) / .pi) / 2.0 * n)
-        return TileID(x: x, y: y, zoom: zoom)
+    static func boundsFromTile(_ tile: CanonicalTileID) -> BoundingBox {
+        let tilesAtThisZoom = 1 << tile.z
+        let width = 360.0 / Double(tilesAtThisZoom)
+        
+        let southwestLongitude = -180 + (Double(tile.x) * width)
+        let northeastLongitude = southwestLongitude + width
+        
+        let latHeightMerc = 1.0 / Double(tilesAtThisZoom)
+        let topLatMerc = Double(tile.y) * latHeightMerc
+        let bottomLatMerc = topLatMerc + latHeightMerc
+        
+        let southwestLatitude = (180 / .pi) * (2 * atan(exp(.pi * (1 - (2 * bottomLatMerc)))) - (.pi / 2))
+        let northeastLatitude = (180 / .pi) * (2 * atan(exp(.pi * (1 - (2 * topLatMerc)))) - (.pi / 2))
+        
+        return BoundingBox(
+            northeastLatitude: northeastLatitude,
+            northeastLongitude: northeastLongitude,
+            southwestLatitude: southwestLatitude,
+            southwestLongitude: southwestLongitude
+        )
     }
+    
+    static func bufferBounds(bounds: BoundingBox, buffer: CGFloat) -> BoundingBox {
+        let xSpan = abs(bounds.northeastLongitude - bounds.southwestLongitude)
+        let ySpan = abs(bounds.northeastLatitude - bounds.southwestLatitude)
+        
+        let bufferedNortheastLongitude = min(bounds.northeastLongitude + xSpan * Double(buffer), 180)
+        let bufferedSouthwestLongitude = max(bounds.southwestLongitude - xSpan * Double(buffer), -180)
+        let bufferedNortheastLatitude = min(bounds.northeastLatitude + ySpan * Double(buffer), 90)
+        let bufferedSouthwestLatitude = max(bounds.southwestLatitude - ySpan * Double(buffer), -90)
+        
+        return BoundingBox(
+            northeastLatitude: bufferedNortheastLatitude,
+            northeastLongitude: bufferedNortheastLongitude,
+            southwestLatitude: bufferedSouthwestLatitude,
+            southwestLongitude: bufferedSouthwestLongitude
+        )
+    }
+
+
+    
 }
 
 struct BoundingBox {
-    let minLatitude: Double
-    let maxLatitude: Double
-    let minLongitude: Double
-    let maxLongitude: Double
+    let northeastLatitude: Double
+    let northeastLongitude: Double
+    let southwestLatitude: Double
+    let southwestLongitude: Double
 
     func contains(latitude: Double, longitude: Double) -> Bool {
-        return latitude >= minLatitude &&
-               latitude <= maxLatitude &&
-               longitude >= minLongitude &&
-               longitude <= maxLongitude
+        return latitude >= southwestLatitude &&
+               latitude <= northeastLatitude &&
+               longitude >= southwestLongitude &&
+               longitude <= northeastLongitude
     }
 }
 
