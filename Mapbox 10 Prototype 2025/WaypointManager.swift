@@ -28,6 +28,8 @@ class WaypointManager {
     static let shared = WaypointManager()
 
     var waypoints: [Waypoint] = []
+    
+    var grid = false
 
     private init() {
         waypoints = fetchWaypoints() // Simulate fetching from CoreData
@@ -42,44 +44,31 @@ class WaypointManager {
         let spacing = 0.1       // Distance between waypoints
         let gridDimension = 10  // Number of waypoints per row and column
 
-        for row in 0..<gridDimension {
-            for col in 0..<gridDimension {
-                let latitude = startLatitude + (Double(row) * spacing)
-                let longitude = startLongitude + (Double(col) * spacing)
-                
-                let waypoint = Waypoint(id: row * gridDimension + col, latitude: latitude, longitude: longitude)
+        if grid {
+            for row in 0..<gridDimension {
+                for col in 0..<gridDimension {
+                    let latitude = startLatitude + (Double(row) * spacing)
+                    let longitude = startLongitude + (Double(col) * spacing)
+                    
+                    let waypoint = Waypoint(id: row * gridDimension + col, latitude: latitude, longitude: longitude)
+                    generatedWaypoints.append(waypoint)
+                }
+            }
+        } else {
+            for i in 0..<100 {
+                let latitude = startLatitude + Double.random(in: -spacing...spacing)
+                let longitude = startLongitude + Double.random(in: -spacing...spacing)
+                let waypoint = Waypoint(id: i, latitude: latitude, longitude: longitude)
                 generatedWaypoints.append(waypoint)
             }
         }
+        
 
         print("Generated waypoint count: \(generatedWaypoints.count)")
         return generatedWaypoints
     }
 
-//
-//    private func fetchWaypoints() -> [Waypoint] {
-//        var generatedWaypoints: [Waypoint] = []
-//        
-//        var startLatitude = 47.42
-//        var startLongitude = -121.425
-//        
-//        let spacing = 0.1
-//        
-//        for i in 0..<100 {
-//            let latitude = startLatitude + Double.random(in: -spacing...spacing)
-//            let longitude = startLongitude + Double.random(in: -spacing...spacing)
-////            let latitude = startLatitude + spacing
-////            let longitude = startLongitude + spacing
-//            
-//            let waypoint = Waypoint(id: i, latitude: latitude, longitude: longitude)
-//            generatedWaypoints.append(waypoint)
-//        }
-//        print("Generated waypoint count: \(generatedWaypoints.count)")
-//        return generatedWaypoints
-//        
-//    }
-    
-    
+
     func updateWaypoints(mapView: MapboxMaps.MapView) {
         let visibleRegion = mapView.mapboxMap.coordinateBounds(for: mapView.bounds)
         let boundingBox = BoundingBox(minLatitude: visibleRegion.southwest.latitude,
@@ -87,14 +76,15 @@ class WaypointManager {
                                       minLongitude: visibleRegion.southwest.longitude,
                                       maxLongitude: visibleRegion.northeast.longitude)
 
-        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForViewport(visibleRegion: boundingBox)
+//        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForViewport(visibleRegion: boundingBox)
         
-//        let centerCoordinate = mapView.cameraState.center
-//        let zoomLevel = Int(mapView.cameraState.zoom.rounded())
-//
-//        let currentTileID = Math.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
-//
-//        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
+        let centerCoordinate = mapView.cameraState.center
+        let zoomLevel = Int(mapView.cameraState.zoom.rounded())
+
+        let currentTileID = Math.getTileID(latitude: centerCoordinate.latitude, longitude: centerCoordinate.longitude, zoom: zoomLevel)
+        let visibleWaypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: currentTileID)
+        
+        
         print("Visible Waypoints: \(visibleWaypoints.count)")
         
         let sourceId = "waypoints"
@@ -151,7 +141,6 @@ class WaypointManager {
 
             try mapView.mapboxMap.style.addLayer(symbolLayer)
 
-            print("Waypoints and symbol layer with random colors added successfully.")
         } catch {
             print("Error adding waypoints or symbol layer: \(error)")
         }
