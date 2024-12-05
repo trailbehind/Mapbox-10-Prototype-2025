@@ -71,8 +71,9 @@ class WaypointManager {
     func addWaypointsLayer(mapView: MapboxMaps.MapView) {
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
-
-
+        //got these values from Trailforks, the are all default except clip.  But I can't tell any difference between true and false for clip when I test the map
+        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
+        
         let options = CustomGeometrySourceOptions(
             fetchTileFunction: { tileID in
                 do {
@@ -87,7 +88,7 @@ class WaypointManager {
                 }
             },
             cancelTileFunction: { _ in },
-            tileOptions: TileOptions()
+            tileOptions: tileOptions
         )
 
         do {
@@ -97,8 +98,7 @@ class WaypointManager {
                 var symbolLayer = SymbolLayer(id: layerId)
                 symbolLayer.source = sourceId
                 symbolLayer.iconImage = .expression(Exp(.get) { "icon" })
-                //jmTODO: icon overlap not working, do we need clustering logic
-                symbolLayer.iconAllowOverlap = .constant(false)
+                symbolLayer.iconAllowOverlap = .constant(true)
                 symbolLayer.iconSize = .constant(1.0)
                 symbolLayer.iconAnchor = .constant(.center)
                 symbolLayer.iconOffset = .constant([0, 0])
@@ -165,9 +165,9 @@ class WaypointDataSource {
         let features: [Feature] = waypoints.compactMap { waypoint in
             var tileBounds = Math.boundsFromTile(tileID)
             
-            // Instead of buffer bounds, TF sets TileOptions in CustomGeometrySource Options as below
-            //        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
-            tileBounds = Math.bufferBounds(bounds: tileBounds, buffer: 1 / 256)
+            // In the current project, WaypointDataSource adds a buffer to the tile bounds like this:
+            // tileBounds = Math.bufferBounds(bounds: tileBounds, buffer: 1 / 256)
+            // but I think we can use TileOptions instead (see addWaypointsLayer method)
             if tileBounds.contains(latitude: waypoint.latitude, longitude: waypoint.longitude) {
                 imageNamesToLoad.insert(waypoint.image)
                 return Waypoint.waypointToFeature(waypoint: waypoint)
