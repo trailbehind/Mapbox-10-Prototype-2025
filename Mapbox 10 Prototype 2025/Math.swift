@@ -5,6 +5,8 @@
 //  Created by Jim Margolis on 12/5/24.
 //
 
+import MapboxMaps
+
 class Math {
     static func boundsFromTile(_ tile: CanonicalTileID) -> BoundingBox {
         let tilesAtThisZoom = 1 << tile.z

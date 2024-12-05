@@ -131,8 +131,9 @@ class WaypointDataSource {
     static let shared = WaypointDataSource()
     
     func getWaypointsForTile(tileID: CanonicalTileID) -> [Feature] {
+        let startTime = Date()
         let waypoints = WaypointManager.shared.waypoints
-        return waypoints.compactMap { waypoint in
+        let features: [Feature] = waypoints.compactMap { waypoint in
             var tileBounds = Math.boundsFromTile(tileID)
             
             // Instead of buffer bounds, TF sets TileOptions in CustomGeometrySource Options as below
@@ -149,6 +150,9 @@ class WaypointDataSource {
                 return nil
             }
         }
+        print("Got \(features.count) waypoints for tile z/x/y \(tileID.z)/\(tileID.x)/\(tileID.y) in \(fabs(startTime.timeIntervalSinceNow)) seconds")
+        return features
+   
     }
 }
 
