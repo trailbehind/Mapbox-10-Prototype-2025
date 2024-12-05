@@ -38,11 +38,10 @@ class WaypointManager {
     private func fetchWaypoints() -> [Waypoint] {
         var generatedWaypoints: [Waypoint] = []
         
-        // Define starting point, spacing, and grid dimensions
         let startLatitude = 47.42
         let startLongitude = -121.425
-        let spacing = 0.1       // Distance between waypoints
-        let gridDimension = 10  // Number of waypoints per row and column
+        let spacing = 0.1
+        let gridDimension = 10
         let totalPoints = 1000
         if grid {
             for row in 0..<gridDimension {
@@ -62,14 +61,12 @@ class WaypointManager {
                 generatedWaypoints.append(waypoint)
             }
         }
-        
-
         print("Generated waypoint count: \(generatedWaypoints.count)")
         return generatedWaypoints
     }
 
 
-    func updateWaypoints(mapView: MapboxMaps.MapView) {
+    func addWaypointsLayer(mapView: MapboxMaps.MapView) {
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
         let waypointImageName = "pin" // Name of the image asset
@@ -155,61 +152,6 @@ class WaypointDataSource {
     }
 }
 
-class Math {
-    static func boundsFromTile(_ tile: CanonicalTileID) -> BoundingBox {
-        let tilesAtThisZoom = 1 << tile.z
-        let width = 360.0 / Double(tilesAtThisZoom)
-        
-        let southwestLongitude = -180 + (Double(tile.x) * width)
-        let northeastLongitude = southwestLongitude + width
-        
-        let latHeightMerc = 1.0 / Double(tilesAtThisZoom)
-        let topLatMerc = Double(tile.y) * latHeightMerc
-        let bottomLatMerc = topLatMerc + latHeightMerc
-        
-        let southwestLatitude = (180 / .pi) * (2 * atan(exp(.pi * (1 - (2 * bottomLatMerc)))) - (.pi / 2))
-        let northeastLatitude = (180 / .pi) * (2 * atan(exp(.pi * (1 - (2 * topLatMerc)))) - (.pi / 2))
-        
-        return BoundingBox(
-            northeastLatitude: northeastLatitude,
-            northeastLongitude: northeastLongitude,
-            southwestLatitude: southwestLatitude,
-            southwestLongitude: southwestLongitude
-        )
-    }
-    
-    static func bufferBounds(bounds: BoundingBox, buffer: CGFloat) -> BoundingBox {
-        let xSpan = abs(bounds.northeastLongitude - bounds.southwestLongitude)
-        let ySpan = abs(bounds.northeastLatitude - bounds.southwestLatitude)
-        
-        let bufferedNortheastLongitude = min(bounds.northeastLongitude + xSpan * Double(buffer), 180)
-        let bufferedSouthwestLongitude = max(bounds.southwestLongitude - xSpan * Double(buffer), -180)
-        let bufferedNortheastLatitude = min(bounds.northeastLatitude + ySpan * Double(buffer), 90)
-        let bufferedSouthwestLatitude = max(bounds.southwestLatitude - ySpan * Double(buffer), -90)
-        
-        return BoundingBox(
-            northeastLatitude: bufferedNortheastLatitude,
-            northeastLongitude: bufferedNortheastLongitude,
-            southwestLatitude: bufferedSouthwestLatitude,
-            southwestLongitude: bufferedSouthwestLongitude
-        )
-    }
 
 
-    
-}
-
-struct BoundingBox {
-    let northeastLatitude: Double
-    let northeastLongitude: Double
-    let southwestLatitude: Double
-    let southwestLongitude: Double
-
-    func contains(latitude: Double, longitude: Double) -> Bool {
-        return latitude >= southwestLatitude &&
-               latitude <= northeastLatitude &&
-               longitude >= southwestLongitude &&
-               longitude <= northeastLongitude
-    }
-}
 

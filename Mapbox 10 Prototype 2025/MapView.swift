@@ -107,12 +107,12 @@ struct MapView: UIViewRepresentable {
       mapView.mapboxMap.loadStyleURI(styleURI) { _ in
         // after the style finishes loading, update the terrain settings if needed
         updateTerrain(mapView, context: context)
-          WaypointManager.shared.updateWaypoints(mapView: mapView)
+          WaypointManager.shared.addWaypointsLayer(mapView: mapView)
       }
     } else {
       // if no style reload is necessary, just update the terrain settings immediately
       updateTerrain(mapView, context: context)
-        WaypointManager.shared.updateWaypoints(mapView: mapView)
+        WaypointManager.shared.addWaypointsLayer(mapView: mapView)
 
     }
   }
