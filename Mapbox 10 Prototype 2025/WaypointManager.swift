@@ -128,7 +128,7 @@ class WaypointManager {
         print("Loaded \(imageNames.count) images for current tile in \(elapsedTime) seconds.")
     }
 
-    //currently unused 
+    //currently unused
     private func loadAllImageAssets(mapView: MapboxMaps.MapView) {
         let startTime = Date()
         
@@ -143,7 +143,7 @@ class WaypointManager {
         if let waypointImage = UIImage(named: name) {
             do {
                 if !mapView.mapboxMap.style.imageExists(withId: name) {
-                    try mapView.mapboxMap.style.addImage(waypointImage, id: name)
+                    try mapView.mapboxMap.style.addImage(waypointImage, id: name) //MB10: In v11 this would be mapView.mapboxMap.addImage
                 }
             } catch {
                 print("Failed to add image to style: \(error)")
