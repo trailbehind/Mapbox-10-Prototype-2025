@@ -72,12 +72,11 @@ class WaypointManager {
         let sourceId = "waypoints"
         let layerId = "waypoint-layer"
 
-        loadImageAssets(mapView: mapView)
 
         let options = CustomGeometrySourceOptions(
             fetchTileFunction: { tileID in
                 do {
-                    let waypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: tileID)
+                    let waypoints = WaypointDataSource.shared.getWaypointsForTile(tileID: tileID, mapView: mapView)
                     try mapView.mapboxMap.style.setCustomGeometrySourceTileData(
                         forSourceId: sourceId,
                         tileId: tileID,
@@ -120,7 +119,17 @@ class WaypointManager {
         return MarkerDecoration.allCases.randomElement()?.rawValue ?? defaultImageName
     }
     
-    private func loadImageAssets(mapView: MapboxMaps.MapView) {
+    func loadImagesForCurrentTile(imageNames: Set<String>, mapView: MapboxMaps.MapView) {
+        let startTime = Date()
+        
+        imageNames.forEach { loadImage($0, mapView: mapView) }
+        
+        let elapsedTime = Date().timeIntervalSince(startTime)
+        print("Loaded \(imageNames.count) images for current tile in \(elapsedTime) seconds.")
+    }
+
+    //currently unused 
+    private func loadAllImageAssets(mapView: MapboxMaps.MapView) {
         let startTime = Date()
         
         MarkerDecoration.allCases.forEach { loadImage($0.rawValue, mapView: mapView) }
@@ -148,9 +157,11 @@ class WaypointManager {
 class WaypointDataSource {
     static let shared = WaypointDataSource()
     
-    func getWaypointsForTile(tileID: CanonicalTileID) -> [Feature] {
+    func getWaypointsForTile(tileID: CanonicalTileID, mapView: MapboxMaps.MapView) -> [Feature] {
         let startTime = Date()
         let waypoints = WaypointManager.shared.waypoints
+        var imageNamesToLoad = Set<String>()  // Track required images
+        
         let features: [Feature] = waypoints.compactMap { waypoint in
             var tileBounds = Math.boundsFromTile(tileID)
             
@@ -158,11 +169,14 @@ class WaypointDataSource {
             //        let tileOptions = TileOptions(tolerance: 0.375, tileSize: 256, buffer: 1, clip: true, wrap: false)
             tileBounds = Math.bufferBounds(bounds: tileBounds, buffer: 1 / 256)
             if tileBounds.contains(latitude: waypoint.latitude, longitude: waypoint.longitude) {
+                imageNamesToLoad.insert(waypoint.image)
                 return Waypoint.waypointToFeature(waypoint: waypoint)
             } else {
                 return nil
             }
         }
+        
+        WaypointManager.shared.loadImagesForCurrentTile(imageNames: imageNamesToLoad, mapView: mapView)
         print("Got \(features.count) waypoints for tile z/x/y \(tileID.z)/\(tileID.x)/\(tileID.y) in \(fabs(startTime.timeIntervalSinceNow)) seconds")
         return features
    
