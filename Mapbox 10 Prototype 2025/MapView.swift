@@ -57,7 +57,6 @@ struct MapView: UIViewRepresentable {
   func makeUIView(context: UIViewRepresentableContext<MapView>) -> MapboxMaps.MapView {
     let options = MapboxMaps.MapInitOptions(styleURI: styleURI)
     let mapView = MapboxMaps.MapView(frame: .zero, mapInitOptions: options)
-
     // Set up the Coordinator to respond to events from this MapView. It'll be
     // responsible for detecting when the user pans or zooms and updating the
     // camera accordingly.
@@ -107,13 +106,21 @@ struct MapView: UIViewRepresentable {
       mapView.mapboxMap.loadStyleURI(styleURI) { _ in
         // after the style finishes loading, update the terrain settings if needed
         updateTerrain(mapView, context: context)
+        WaypointManager.shared.addWaypointsLayer(mapView: mapView)
       }
     } else {
       // if no style reload is necessary, just update the terrain settings immediately
       updateTerrain(mapView, context: context)
+      WaypointManager.shared.addWaypointsLayer(mapView: mapView)
+
     }
   }
+    
+    
+    
 
+
+    
   // This is a helper function for updateUIView() above
   private func updateTerrain(_ mapView: MapboxMaps.MapView, context: Context) {
     do {
@@ -140,9 +147,13 @@ struct MapView: UIViewRepresentable {
   }
 }
 
+
+
 extension MapView {
   /// Here's our custom `Coordinator` implementation.
-  final class Coordinator {
+    class Coordinator {
+        
+        
     /// It holds a binding to the camera
     @Binding private var camera: Camera
     private var cancelable: Cancelable?
