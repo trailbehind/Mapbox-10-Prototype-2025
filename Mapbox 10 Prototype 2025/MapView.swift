@@ -61,7 +61,6 @@ struct MapView: UIViewRepresentable {
     // responsible for detecting when the user pans or zooms and updating the
     // camera accordingly.
     context.coordinator.mapView = mapView
-    mapView.gestures.delegate = context.coordinator
 
     // Some operations, like adding layers, need to be deferred until the initial
     // style loading is completed.
@@ -152,7 +151,7 @@ struct MapView: UIViewRepresentable {
 
 extension MapView {
   /// Here's our custom `Coordinator` implementation.
-    class Coordinator: GestureManagerDelegate {
+    class Coordinator {
         
         
     /// It holds a binding to the camera
@@ -195,29 +194,6 @@ extension MapView {
         camera.center = mapView.cameraState.center
         camera.zoom = mapView.cameraState.zoom
     }
-        
-    //MARK: GestureManagerDelegate
-        
-    func gestureManager(_ gestureManager: MapboxMaps.GestureManager, didBegin gestureType: MapboxMaps.GestureType) {
-        //
-    }
-    
-    func gestureManager(_ gestureManager: MapboxMaps.GestureManager, didEnd gestureType: MapboxMaps.GestureType, willAnimate: Bool) {
-        //
-    }
-    
-    func gestureManager(_ gestureManager: MapboxMaps.GestureManager, didEndAnimatingFor gestureType: MapboxMaps.GestureType) {
-        //
-    }
-        
-    func gestureManager(_ gestureManager: GestureManager, didFail gestureType: GestureType, with error: Error) {
-       print("Gesture failed: \(gestureType), error: \(error)")
-     }
-
-     func gestureManager(_ gestureManager: GestureManager, didRecognizeTapAt point: CGPoint) {
-       let coordinate = mapView.mapboxMap.coordinate(for: point)
-         
-     }
   }
 }
 

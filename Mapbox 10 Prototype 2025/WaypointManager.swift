@@ -127,17 +127,6 @@ class WaypointManager {
         let elapsedTime = Date().timeIntervalSince(startTime)
         print("Loaded \(imageNames.count) images for current tile in \(elapsedTime) seconds.")
     }
-
-    //currently unused
-    private func loadAllImageAssets(mapView: MapboxMaps.MapView) {
-        let startTime = Date()
-        
-        MarkerDecoration.allCases.forEach { loadImage($0.rawValue, mapView: mapView) }
-        
-        let elapsedTime = Date().timeIntervalSince(startTime)
-        print("Loaded all image assets in \(elapsedTime) seconds.")
-    }
-
     
     private func loadImage(_ name: String, mapView: MapboxMaps.MapView) {
         if let waypointImage = UIImage(named: name) {
