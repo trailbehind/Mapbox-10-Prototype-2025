@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		EC1850CB2D079DCD00689FB3 /* Geodesy in Frameworks */ = {isa = PBXBuildFile; productRef = EC1850CA2D079DCD00689FB3 /* Geodesy */; };
+		EC1850E02D07A0E500689FB3 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = EC1850DF2D07A0E500689FB3 /* SQLite */; };
 		EC8B47052CF13FC0006186CD /* MapboxMaps in Frameworks */ = {isa = PBXBuildFile; productRef = EC8B47042CF13FC0006186CD /* MapboxMaps */; };
 /* End PBXBuildFile section */
 
@@ -27,7 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EC1850E02D07A0E500689FB3 /* SQLite in Frameworks */,
 				EC8B47052CF13FC0006186CD /* MapboxMaps in Frameworks */,
+				EC1850CB2D079DCD00689FB3 /* Geodesy in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +75,8 @@
 			name = "Mapbox 10 Prototype 2025";
 			packageProductDependencies = (
 				EC8B47042CF13FC0006186CD /* MapboxMaps */,
+				EC1850CA2D079DCD00689FB3 /* Geodesy */,
+				EC1850DF2D07A0E500689FB3 /* SQLite */,
 			);
 			productName = "Mapbox 10 Prototype 2025";
 			productReference = EC8B46EC2CF13672006186CD /* Mapbox 10 Prototype 2025.app */;
@@ -102,6 +108,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */,
+				EC1850C92D079DCD00689FB3 /* XCRemoteSwiftPackageReference "Geodesy" */,
+				EC1850DE2D07A0E500689FB3 /* XCRemoteSwiftPackageReference "SQLite.swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EC8B46ED2CF13672006186CD /* Products */;
@@ -337,6 +345,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		EC1850C92D079DCD00689FB3 /* XCRemoteSwiftPackageReference "Geodesy" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/danielctull/Geodesy.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		EC1850DE2D07A0E500689FB3 /* XCRemoteSwiftPackageReference "SQLite.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stephencelis/SQLite.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.3;
+			};
+		};
 		EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mapbox/mapbox-maps-ios.git";
@@ -348,6 +372,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		EC1850CA2D079DCD00689FB3 /* Geodesy */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC1850C92D079DCD00689FB3 /* XCRemoteSwiftPackageReference "Geodesy" */;
+			productName = Geodesy;
+		};
+		EC1850DF2D07A0E500689FB3 /* SQLite */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EC1850DE2D07A0E500689FB3 /* XCRemoteSwiftPackageReference "SQLite.swift" */;
+			productName = SQLite;
+		};
 		EC8B47042CF13FC0006186CD /* MapboxMaps */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = EC8B47032CF13FC0006186CD /* XCRemoteSwiftPackageReference "mapbox-maps-ios" */;

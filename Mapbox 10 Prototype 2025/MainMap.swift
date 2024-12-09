@@ -24,7 +24,7 @@ struct MainMap: View {
     // in a ViewModel.
     @State private var camera = Camera(
         center: CLLocationCoordinate2D(latitude: 47.42, longitude: -121.425), zoom: 12)
-    @State private var style = Style.mapboxOutdoors
+    @State private var style = Style.gaiaTopo
     @State private var showTerrain = false
 
     
